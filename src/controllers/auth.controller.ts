@@ -6,7 +6,7 @@ import { generateToken } from "../utils/jwt";
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { username, password, confirmPassword, email, role } = req.body; // ✅ Thêm email
+    const { username, password, confirmPassword, email, role } = req.body;
 
     // ✅ Validation
     if (!username || !password || !confirmPassword || !email) {
@@ -46,13 +46,13 @@ export const register = async (req: Request, res: Response) => {
       email, // ✅ Thêm email
       password: hashedPassword,
       role: role && ["admin", "moderator"].includes(role) ? role : "user",
-      isVerified: false // Mặc định chưa verify
+      isVerified: true // ✅ Tạm thời set true để test, sau này sẽ dùng email verification
     });
     
     await newUser.save();
 
     res.status(201).json({ 
-      message: "User registered successfully. Please verify your email.", 
+      message: "User registered successfully!", 
       user: { 
         username: newUser.username,
         email: newUser.email // ✅ Trả về email
@@ -81,12 +81,7 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Invalid username or password" });
     }
 
-    // ✅ Kiểm tra email verification (optional - tùy yêu cầu)
-    // if (!user.isVerified) {
-    //   return res.status(403).json({ 
-    //     message: "Please verify your email before logging in" 
-    //   });
-    // }
+    // ✅ Bỏ kiểm tra email verification (tạm thời không cần)
 
     // ✅ Generate token với đầy đủ thông tin
     const token = generateToken({ 
