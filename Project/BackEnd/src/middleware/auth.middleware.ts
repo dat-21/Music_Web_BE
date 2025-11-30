@@ -31,13 +31,6 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     const decoded = verifyToken(token);
     req.user = decoded;
 
-    // ✅ Kiểm tra email verification (optional)
-    if (!decoded.isVerified) {
-      return res.status(403).json({ 
-        message: "Email not verified. Please check your inbox." 
-      });
-    }
-
     next();
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
@@ -48,6 +41,21 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     }
     return res.status(403).json({ message: "Token verification failed" });
   }
+};
+
+// ✅ Middleware yêu cầu email đã verify
+export const requireVerified = (req: Request, res: Response, next: NextFunction) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Authentication required" });
+  }
+
+  if (!req.user.isVerified) {
+    return res.status(403).json({ 
+      message: "Email not verified. Please check your inbox." 
+    });
+  }
+
+  next();
 };
 
 // ✅ Middleware kiểm tra role (phân quyền)
@@ -111,9 +119,6 @@ export const optionalAuth = (req: Request, res: Response, next: NextFunction) =>
         isVerified: boolean;
       };
       req.user = decoded;
-      if (!decoded.isVerified) {
-      return res.status(403).json({ message: "Email not verified" });
-}
     }
     
     next();
