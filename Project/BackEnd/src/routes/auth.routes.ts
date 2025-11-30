@@ -1,0 +1,18 @@
+// routes/music.routes.ts
+import express from "express";
+import { 
+  authenticate, 
+  isAdmin, 
+  isModeratorOrAdmin,
+  isOwnerOrAdmin,
+  optionalAuth 
+} from "../middleware/auth.middleware";
+import * as authController from "../controllers/auth.controller";
+// import * as musicController from "../controllers/music.controller";
+
+const router = express.Router();
+router.post("/register", authController.register);
+router.post("/login", authController.login);
+router.post("/logout", authController.logout);
+router.get("/me", authenticate, authController.getCurrentUser);
+export default router;

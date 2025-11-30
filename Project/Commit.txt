@@ -1,0 +1,14 @@
+Commit cho việc thêm Login feature
+git commit -m "feat(auth): implement login and authentication flow"
+
+Commit cho UI / Tailwind
+git commit -m "style(ui): update tailwind config and improve layout"
+
+Commit backend cho API
+git commit -m "feat(api): add music and auth controllers"
+
+Commit fix bug
+git commit -m "fix(auth): resolve login state bug"
+
+Commit update cấu hình
+git commit -m "chore(config): update postcss, tailwind, and package.json"
