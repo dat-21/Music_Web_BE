@@ -1,9 +1,9 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface IUser extends Document {
-   _id: Types.ObjectId; // ✅ Thêm dòng này
+   _id: Types.ObjectId;
   username: string;
-  password: string;
+  password: string; 
   role: "user" | "admin" | "moderator"; // Thêm role
   email: string;
   createdAt: Date;
