@@ -8,6 +8,8 @@ import {
   optionalAuth 
 } from "../middleware/auth.middleware";
 import * as musicController from "../controllers/music.controller";
+import { uploadSongMiddleware } from "../middleware/song.middleware";
+
 
 const router = express.Router();
 
@@ -25,9 +27,9 @@ router.get("/my-playlists", musicController.getMyPlaylists);
 
 // ✅ Chỉ admin
 router.use(isAdmin);
-router.post("/songs",  musicController.uploadSong);
-router.delete("/songs/:id",  musicController.deleteSong);
-router.delete("/users/:id",  musicController.deleteUser);
+router.post("/songs", uploadSongMiddleware, musicController.uploadSong); // ✅ Upload audio + cover image
+router.delete("/songs/:id", musicController.deleteSong);
+router.delete("/users/:id", musicController.deleteUser);
 
 // ✅ Admin hoặc Moderator
 router.put("/songs/:id", isModeratorOrAdmin, musicController.updateSong);
