@@ -14,7 +14,7 @@ export const register = async (req: Request, res: Response) => {
         message: "Username, email, and password are required" 
       });
     }
-
+ 
     if (password !== confirmPassword) {
       return res.status(400).json({ message: "Passwords do not match" });
     }
