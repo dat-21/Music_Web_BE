@@ -26,7 +26,7 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     
     if (!token) {
       return res.status(401).json({ message: "Authentication required" });
-    }
+    } 
 
     const decoded = verifyToken(token);
     req.user = decoded;

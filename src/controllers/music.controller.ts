@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import Song from "../models/song.model";
 import mongoose from "mongoose";
 import cloudinary from "../config/cloudinary";
 import { Readable } from "stream";
 import { parseBuffer } from "music-metadata";
+import { Song } from "../models";
 
 // ✅ Helper: Convert buffer to stream (cho Cloudinary)
 const bufferToStream = (buffer: Buffer): Readable => {

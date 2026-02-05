@@ -1,7 +1,7 @@
 // routes/music.routes.ts
 import express from "express";
 import { 
-  authenticate, 
+  authenticate,  
   isAdmin, 
   isModeratorOrAdmin,
   isOwnerOrAdmin,
