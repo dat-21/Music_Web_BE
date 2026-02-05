@@ -21,4 +21,6 @@ const playlistSchema = new Schema<IPlaylist>(
   { timestamps: true }
 );
 
-export default mongoose.model<IPlaylist>("Playlist", playlistSchema);
+const Playlist = mongoose.model<IPlaylist>("Playlist", playlistSchema);
+export default Playlist;
+export { Playlist };

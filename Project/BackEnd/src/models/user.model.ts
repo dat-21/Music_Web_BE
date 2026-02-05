@@ -1,6 +1,13 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 import { UserRole } from "../enums";
 
+// Interface cho lịch sử nghe nhạc
+export interface IListenHistoryItem {
+  songId: Types.ObjectId;
+  position: number;    // Giây đang nghe
+  updatedAt: Date;     // Thời gian cập nhật
+}
+
 export interface IUser extends Document {
    _id: Types.ObjectId;
   username: string;
@@ -11,7 +18,18 @@ export interface IUser extends Document {
   isVerified: boolean;
   verifyToken: String;
   verifyTokenExpires: Date;
+  listenHistory: IListenHistoryItem[];
 } 
+
+// Sub-schema cho lịch sử nghe nhạc
+const listenHistoryItemSchema = new Schema<IListenHistoryItem>(
+  {
+    songId: { type: Schema.Types.ObjectId, ref: "Song", required: true },
+    position: { type: Number, required: true, default: 0 },
+    updatedAt: { type: Date, default: Date.now }
+  },
+  { _id: false }
+);
 
 const userSchema = new Schema<IUser>(
   {
@@ -37,9 +55,15 @@ const userSchema = new Schema<IUser>(
       type: Date,
       default: null
     },
+    listenHistory: {
+      type: [listenHistoryItemSchema],
+      default: []
+    },
     createdAt: { type: Date, default: Date.now }
   },
   { timestamps: true }
 );
 
-export default mongoose.model<IUser>("User", userSchema);
+const User = mongoose.model<IUser>("User", userSchema);
+export { User };
+export default User;

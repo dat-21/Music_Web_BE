@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
-import User from "../models/user.model";
 import { generateToken } from "../utils/jwt";
+import { User } from "../models";
 
 
 export const register = async (req: Request, res: Response) => {
@@ -132,7 +132,7 @@ export const getCurrentUser = async (req: Request, res: Response) => {
     }
 
     const user = await User.findById(req.user.id)
-      .select("username email role isVerified createdAt"); // ✅ Thêm email
+      .select("username email role isVerified createdAt"); 
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });

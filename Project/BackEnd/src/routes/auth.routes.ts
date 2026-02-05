@@ -1,11 +1,7 @@
 // routes/music.routes.ts
 import express from "express";
 import { 
-  authenticate, 
-  isAdmin, 
-  isModeratorOrAdmin,
-  isOwnerOrAdmin,
-  optionalAuth 
+  authenticate,
 } from "../middleware/auth.middleware";
 import * as authController from "../controllers/auth.controller";
 // import * as musicController from "../controllers/music.controller";

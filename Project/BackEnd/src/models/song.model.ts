@@ -41,4 +41,6 @@ const songSchema = new Schema<ISong>(
 songSchema.index({ title: "text" });
 songSchema.index({ artist: 1 });
 
-export default mongoose.model<ISong>("Song", songSchema);
+const Song = mongoose.model<ISong>("Song", songSchema);
+export default Song;
+export { Song };
