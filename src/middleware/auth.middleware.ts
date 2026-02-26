@@ -1,7 +1,7 @@
 // middleware/auth.middleware.ts
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { verifyToken, TokenPayload } from "../utils/jwt";
+import { verifyToken, TokenPayload } from "../utils/jwt.utils";
 // ✅ Extend Express Request type để thêm user
 declare global {
   namespace Express {
@@ -23,10 +23,10 @@ declare global {
 export const authenticate = (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
-    
+
     if (!token) {
       return res.status(401).json({ message: "Authentication required" });
-    } 
+    }
 
     const decoded = verifyToken(token);
     req.user = decoded;
@@ -50,8 +50,8 @@ export const requireVerified = (req: Request, res: Response, next: NextFunction)
   }
 
   if (!req.user.isVerified) {
-    return res.status(403).json({ 
-      message: "Email not verified. Please check your inbox." 
+    return res.status(403).json({
+      message: "Email not verified. Please check your inbox."
     });
   }
 
@@ -66,7 +66,7 @@ export const authorize = (...allowedRoles: string[]) => {
     }
 
     if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         message: "Access denied. Insufficient permissions",
         requiredRoles: allowedRoles,
         yourRole: req.user.role
@@ -96,7 +96,7 @@ export const isOwnerOrAdmin = (resourceUserIdField: string = "userId") => {
 
     // Kiểm tra xem user có phải owner không
     const resourceUserId = (req as any)[resourceUserIdField] || req.params.userId || req.body.userId;
-    
+
     if (req.user.id !== resourceUserId) {
       return res.status(403).json({ message: "You can only access your own resources" });
     }
@@ -109,7 +109,7 @@ export const isOwnerOrAdmin = (resourceUserIdField: string = "userId") => {
 export const optionalAuth = (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
-    
+
     if (token) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
         id: string;
@@ -120,7 +120,7 @@ export const optionalAuth = (req: Request, res: Response, next: NextFunction) =>
       };
       req.user = decoded;
     }
-    
+
     next();
   } catch (error) {
     // Token invalid nhưng vẫn cho qua (optional)

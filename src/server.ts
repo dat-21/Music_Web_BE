@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/db";
 import route from "./routes";
+import { errorHandler } from "./middleware/error.middleware";
 
 dotenv.config();
 
@@ -22,7 +23,7 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-
+app.use(errorHandler);
 // 🧾 Logger middleware
 app.use((req: Request, res: Response, next) => {
   console.log(`📥 ${req.method} ${req.path} - ${new Date().toLocaleString()}`);

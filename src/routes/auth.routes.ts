@@ -4,7 +4,6 @@ import {
   authenticate,
 } from "../middleware/auth.middleware";
 import * as authController from "../controllers/auth.controller";
-// import * as musicController from "../controllers/music.controller";
 
 const router = express.Router();
 router.post("/register", authController.register);

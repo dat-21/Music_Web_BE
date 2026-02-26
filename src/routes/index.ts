@@ -1,6 +1,6 @@
 import { Application } from "express";
 import authRoutes from "./auth.routes";
-import musicRoutes from "./music.routes";
+import musicRoutes from "./music";        // Giờ import từ folder music/index.ts
 import aiChatbotRoutes from "./ai-chatbot.routes";
 import historyRoutes from "./history.routes";
 

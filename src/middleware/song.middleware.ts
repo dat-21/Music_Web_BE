@@ -1,4 +1,4 @@
-import { uploadSongWithCover } from "../utils/multer";
+import { uploadSongWithCover } from "../utils/multer.utils";
 
 // ✅ Wrapper để handle multer errors
 const uploadSongMiddleware = (req: any, res: any, next: any) => {
@@ -13,4 +13,4 @@ const uploadSongMiddleware = (req: any, res: any, next: any) => {
     next();
   });
 };
-export { uploadSongMiddleware };
+export { uploadSongMiddleware }; 
