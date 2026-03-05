@@ -1,0 +1,24 @@
+import { Response } from "express";
+
+interface SuccessResponse<T> {
+  success: true;
+  message?: string;
+  data?: T;
+}
+
+export const sendResponse = <T>(
+  res: Response,
+  statusCode: number,
+  options: {
+    message?: string;
+    data?: T;
+  }
+) => {
+  const response: SuccessResponse<T> = {
+    success: true,
+    message: options.message,
+    data: options.data,
+  };
+
+  return res.status(statusCode).json(response);
+};
