@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
 
 interface ChatResponse {
   response: string;
@@ -14,7 +14,7 @@ interface ChatResponse {
 class AIChatbotService {
   private provider: string;
   private geminiAI?: GoogleGenerativeAI;
-  private geminiModel?: any;
+  private geminiModel?: GenerativeModel;
 
   constructor() {
     this.provider = process.env.AI_PROVIDER || 'gemini';
@@ -59,9 +59,10 @@ class AIChatbotService {
         default:
           return await this.chatWithRuleBased(message, languageCode);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Chat error:', error);
-      throw new Error(`Failed to get AI response: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Failed to get AI response: ${message}`);
     }
   }
 
@@ -109,9 +110,10 @@ ${context ? `Context: ${context}` : ''}`;
         provider: 'gemini',
         model: 'gemini-pro'
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Gemini error:', error);
-      throw new Error(`Gemini AI error: ${error.message}`);
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Gemini AI error: ${message}`);
     }
   }
 

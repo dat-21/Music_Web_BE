@@ -1,22 +1,16 @@
 import mongoose from "mongoose";
 import cloudinary from "../config/cloudinary";
-import { Song } from "../models";
+import { songRepository } from "../repositories";
 import { AppError } from "../utils/AppError.utils";
-import { parseBuffer } from "music-metadata";
-import { Readable } from "stream";
 import slugify from "slugify";
-
 import { uploadToCloudinary } from "../utils/cloudinary.utils";
 import { getAudioDuration } from "../utils/audio.utils";
+import { UpdateSongDTO } from "../types";
+import { ISong } from "../models/song.model";
 
-
-const parseGenres = (genres: any): string[] => {
+const parseGenres = (genres: string | string[] | undefined): string[] => {
   if (!genres) return [];
-
-  if (Array.isArray(genres)) {
-    return genres;
-  }
-
+  if (Array.isArray(genres)) return genres;
   if (typeof genres === "string") {
     try {
       const parsed = JSON.parse(genres);
@@ -25,154 +19,129 @@ const parseGenres = (genres: any): string[] => {
       return [genres];
     }
   }
-
   return [];
 };
+
 // ================= PUBLIC =================
 
-export const getAllSongsService = async (query: any) => {
-    const page = Number(query.page) || 1;
-    const limit = Number(query.limit) || 20;
+export const getAllSongsService = async (
+  page: number,
+  limit: number
+): Promise<{ page: number; limit: number; total: number; songs: ISong[] }> => {
+  const _page = page || 1;
+  const _limit = limit || 20;
+  const filter = { status: "approved" };
 
-    const filter = { status: "approved" };
+  const songs = await songRepository.findAllSongs(filter, (_page - 1) * _limit, _limit);
+  const total = await songRepository.countSongs(filter);
 
-    const songs = await Song.find(filter)
-        .skip((page - 1) * limit)
-        .limit(limit);
-
-    const total = await Song.countDocuments(filter);
-
-    return { page, limit, total, songs };
+  return { page: _page, limit: _limit, total, songs };
 };
 
-export const getSongByIdService = async (id: string) => {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new AppError("Invalid song ID", 400);
-    }
-
-    const song = await Song.findOne({
-        _id: id,
-        status: "approved",
-    });
-
-    if (!song) {
-        throw new AppError("Song not found", 404);
-    }
-
-    return song;
-};
-
-// ================= ADMIN =================
-
-export const getPendingSongsService = async () => {
-    const songs = await Song.find({ status: "pending" });
-    return { total: songs.length, songs };
-};
-
-
-export const uploadSongService = async (
-    files: any,
-    body: any,
-    currentUser: any
-) => {
-    if (!files?.audio?.length) {
-        throw new AppError("Audio file is required", 400);
-    }
-
-    const audioFile = files.audio[0];
-    const coverFile = files.coverImage?.[0];
-
-    const { title, artist, album, genres } = body;
-    const parsedGenres = parseGenres(genres);   
-    if (!title || !artist) {
-        throw new AppError("Title and artist are required", 400);
-    }
-
-    // Upload audio
-    const uploadAudioResult: any = await uploadToCloudinary(
-    audioFile.buffer,
-         {
-                resource_type: "video",
-                folder: "music_uploads",
-                public_id: `${Date.now()}-${slugify(title, { lower: true })}`
-            }
-    )
-
-    // Upload cover
-    let coverUrl;
-    let coverKey;
-
-    if (coverFile) {
-        const uploadCover: any = await uploadToCloudinary(
-            coverFile.buffer,
-            {
-                resource_type: "image",
-                folder: "music_covers",
-            }
-        );
-
-        coverUrl = uploadCover.secure_url;
-        coverKey = uploadCover.public_id;
-    }
-
-        // 🔥 Lấy duration dùng util
-    const duration = await getAudioDuration(
-  audioFile.buffer,
-  audioFile.mimetype
-    );
-
-
-    const newSong = await Song.create({
-        title,
-        artist,
-        album,
-        genres: parsedGenres,
-        fileUrl: uploadAudioResult.secure_url,
-        fileKey: uploadAudioResult.public_id,
-        duration,
-        size: audioFile.size,
-        coverUrl,
-        coverKey,
-        uploadedBy: currentUser.id,
-    });
-
-    return newSong;
-};
-
-
-export const deleteSongService = async (id: string) => {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new AppError("Invalid song ID", 400);
-    }
-
-    const song = await Song.findById(id);
-    if (!song) {
-        throw new AppError("Song not found", 404);
-    }
-
-    // Xóa file trên Cloudinary
-    try {
-        await cloudinary.uploader.destroy(song.fileKey, {
-            resource_type: "video",
-        });
-    } catch (error) {
-        console.error("Cloudinary deletion error:", error);
-    }
-
-    await Song.findByIdAndDelete(id);
-};
-
-export const updateSongService = async (
-  id: string,
-  data: any
-) => {
+export const getSongByIdService = async (id: string): Promise<ISong> => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw new AppError("Invalid song ID", 400);
   }
 
-  const { title, artist, album, genres } = data;
-  const updateData: any = {};
+  const song = await songRepository.findOneSong({ _id: id, status: "approved" });
+  if (!song) {
+    throw new AppError("Song not found", 404);
+  }
 
+  return song;
+};
+
+// ================= ADMIN =================
+
+export const getPendingSongsService = async (): Promise<{ total: number; songs: ISong[] }> => {
+  const songs = await songRepository.findSongsByStatus("pending");
+  return { total: songs.length, songs };
+};
+
+export const uploadSongService = async (
+  title: string,
+  artist: string,
+  album: string | undefined,
+  genres: string | string[] | undefined,
+  audioFile: Express.Multer.File | undefined,
+  coverFile: Express.Multer.File | undefined,
+  userId?: string
+): Promise<ISong> => {
+  if (!audioFile) {
+    throw new AppError("Audio file is required", 400);
+  }
+
+  if (!title || !artist) {
+    throw new AppError("Title and artist are required", 400);
+  }
+
+  const parsedGenres = parseGenres(genres);
+
+  const uploadAudioResult = await uploadToCloudinary(audioFile.buffer, {
+    resource_type: "video",
+    folder: "music_uploads",
+    public_id: `${Date.now()}-${slugify(title, { lower: true })}`,
+  });
+
+  let coverUrl: string | undefined;
+
+  if (coverFile) {
+    const uploadCover = await uploadToCloudinary(coverFile.buffer, {
+      resource_type: "image",
+      folder: "music_covers",
+    });
+    coverUrl = uploadCover.secure_url;
+  }
+
+  const duration = await getAudioDuration(audioFile.buffer, audioFile.mimetype);
+
+  const newSong = await songRepository.createSong({
+    title,
+    artist,
+    album,
+    genres: parsedGenres,
+    fileUrl: uploadAudioResult.secure_url,
+    fileKey: uploadAudioResult.public_id,
+    duration,
+    size: audioFile.size,
+    coverUrl,
+    uploadedBy: userId as unknown as mongoose.Types.ObjectId,
+  });
+
+  return newSong;
+};
+
+export const deleteSongService = async (id: string): Promise<void> => {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new AppError("Invalid song ID", 400);
+  }
+
+  const song = await songRepository.findSongById(id);
+  if (!song) {
+    throw new AppError("Song not found", 404);
+  }
+
+  try {
+    await cloudinary.uploader.destroy(song.fileKey, { resource_type: "video" });
+  } catch (error) {
+    console.error("Cloudinary deletion error:", error);
+  }
+
+  await songRepository.deleteSongById(id);
+};
+
+export const updateSongService = async (
+  id: string,
+  title?: string,
+  artist?: string,
+  album?: string,
+  genres?: string | string[] | undefined
+): Promise<ISong> => {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new AppError("Invalid song ID", 400);
+  }
+
+  const updateData: UpdateSongDTO = {};
   if (title !== undefined) updateData.title = title.trim();
   if (artist !== undefined) updateData.artist = artist.trim();
   if (album !== undefined) updateData.album = album.trim();
@@ -182,12 +151,7 @@ export const updateSongService = async (
     throw new AppError("No data provided to update", 400);
   }
 
-  const song = await Song.findByIdAndUpdate(
-    id,
-    updateData,
-    { new: true, runValidators: true }
-  );
-
+  const song = await songRepository.updateSongById(id, updateData);
   if (!song) {
     throw new AppError("Song not found", 404);
   }
@@ -195,19 +159,18 @@ export const updateSongService = async (
   return song;
 };
 
+export const approveSongService = async (id: string): Promise<ISong> => {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new AppError("Invalid song ID", 400);
+  }
 
-export const approveSongService = async (id: string) => {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        throw new AppError("Invalid song ID", 400);
-    }
+  const song = await songRepository.findSongById(id);
+  if (!song) {
+    throw new AppError("Song not found", 404);
+  }
 
-    const song = await Song.findById(id);
-    if (!song) {
-        throw new AppError("Song not found", 404);
-    }
+  song.status = "approved";
+  await song.save();
 
-    song.status = "approved";
-    await song.save();
-
-    return song;
+  return song;
 };
