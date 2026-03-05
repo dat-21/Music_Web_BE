@@ -3,31 +3,36 @@ import { Request, Response } from "express";
 import {
     deleteUserService,
     getAllUsersService,
-} from "../services/user.service";
+} from "../services";
 import { asyncHandler } from "../utils/asyncHandler.utils";
+import { sendResponse } from "../utils/respone.utils";
 
-// ✅ Admin only - Xóa user
+// Admin only - Xóa user
 export const deleteUser = asyncHandler(
     async (req: Request, res: Response) => {
         const { id } = req.params;
+        const currentUserId = req.user?.id;
 
-        await deleteUserService(id, req.user!.id);
+        await deleteUserService(id, currentUserId);
 
-        res.json({
+        sendResponse(res, 200, {
             message: "User deleted successfully",
         });
     }
 )
 
-// ✅ Admin only - Lấy danh sách tất cả users
+// Admin only - Lấy danh sách tất cả users
 export const getAllUsers = asyncHandler(
     async (req: Request, res: Response) => {
-        const page = Number(req.query.page) || 1;
-        const limit = Number(req.query.limit) || 20;
+        const page = Number(req.query.page);
+        const limit = Number(req.query.limit);
 
-        const result = await getAllUsersService(req.query);
+        const result = await getAllUsersService(page, limit);
 
-        res.json(result);
+        sendResponse(res, 200, {
+            message: "Users retrieved successfully",
+            data: result,
+        });
     }
 )
 

@@ -1,181 +1,89 @@
 import { Request, Response } from "express";
-import mongoose from "mongoose";
-import { Playlist } from "../models";
+import { asyncHandler } from "../utils/asyncHandler.utils";
+import { sendResponse } from "../utils/respone.utils";
+import {
+    getMyPlaylistsService,
+    createPlaylistService,
+    updatePlaylistService,
+    deletePlaylistService,
+    addSongToPlaylistService,
+    removeSongFromPlaylistService,
+} from "../services";
 
-// ✅ Cần login - Lấy playlists của user
-export const getMyPlaylists = async (req: Request, res: Response) => {
-    try {
-        const userId = req.user!.id;
+// Cần login - Lấy playlists của user
+export const getMyPlaylists = asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.user?.id;
+    const result = await getMyPlaylistsService(userId);
 
-        const playlists = await Playlist.find({ user: userId })
-            .populate("songs", "title artist coverUrl duration");
+    sendResponse(res, 200, {
+        message: "Playlists retrieved successfully",
+        data: result,
+    });
+});
 
-        res.json({
-            total: playlists.length,
-            playlists,
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Server error" });
-    }
-};
+// Cần login - Tạo playlist
+export const createPlaylist = asyncHandler(async (req: Request, res: Response) => {
+    const { name, description, isPublic } = req.body;
+    const userId = req.user?.id;
 
-// ✅ Cần login - Tạo playlist
-export const createPlaylist = async (req: Request, res: Response) => {
-    try {
-        const { name, description, isPublic } = req.body;
-        const userId = req.user!.id;
+    const playlist = await createPlaylistService(name, description, isPublic, userId);
 
-        if (!name) {
-            return res.status(400).json({ message: "Playlist name is required" });
-        }
+    sendResponse(res, 201, {
+        message: "Playlist created successfully",
+        data: playlist,
+    });
+});
 
-        const newPlaylist = new Playlist({
-            name,
-            description: description || undefined,
-            user: userId,
-            songs: [],
-            isPublic: isPublic || false,
-        });
+// Owner hoặc Admin - Cập nhật playlist
+export const updatePlaylist = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { name, description, isPublic } = req.body;
+    const userId = req.user?.id;
 
-        await newPlaylist.save();
+    const playlist = await updatePlaylistService(id, name, description, isPublic, userId);
 
-        res.status(201).json({
-            message: "Playlist created successfully",
-            playlist: newPlaylist,
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Server error" });
-    }
-};
+    sendResponse(res, 200, {
+        message: "Playlist updated successfully",
+        data: playlist,
+    });
+});
 
-// ✅ Owner hoặc Admin - Cập nhật playlist
-export const updatePlaylist = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
+// Owner hoặc Admin - Xóa playlist
+export const deletePlaylist = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const userId = req.user?.id;
 
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ message: "Invalid playlist ID" });
-        }
+    await deletePlaylistService(id, userId);
 
-        const { name, description, isPublic } = req.body;
+    sendResponse(res, 200, {
+        message: "Playlist deleted successfully",
+    });
+});
 
-        const playlist = await Playlist.findById(id);
-        if (!playlist) {
-            return res.status(404).json({ message: "Playlist not found" });
-        }
+// Cần login - Thêm bài hát vào playlist
+export const addSongToPlaylist = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { songId } = req.body;
+    const userId = req.user?.id;
 
-        // Kiểm tra quyền: chỉ owner hoặc admin
-        if (playlist.user.toString() !== req.user!.id && req.user!.role !== "admin") {
-            return res.status(403).json({ message: "Access denied" });
-        }
+    const playlist = await addSongToPlaylistService(id, songId, userId);
 
-        if (name) playlist.name = name;
-        if (description !== undefined) playlist.description = description;
-        if (isPublic !== undefined) playlist.isPublic = isPublic;
+    sendResponse(res, 200, {
+        message: "Song added to playlist",
+        data: playlist,
+    });
+});
 
-        await playlist.save();
+// Cần login - Xóa bài hát khỏi playlist
+export const removeSongFromPlaylist = asyncHandler(async (req: Request, res: Response) => {
+    const { id, songId } = req.params;
+    const userId = req.user?.id;
 
-        res.json({
-            message: "Playlist updated successfully",
-            playlist,
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Server error" });
-    }
-};
 
-// ✅ Owner hoặc Admin - Xóa playlist
-export const deletePlaylist = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
+    const playlist = await removeSongFromPlaylistService(id, songId, userId);
 
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ message: "Invalid playlist ID" });
-        }
-
-        const playlist = await Playlist.findById(id);
-        if (!playlist) {
-            return res.status(404).json({ message: "Playlist not found" });
-        }
-
-        // Kiểm tra quyền: chỉ owner hoặc admin
-        if (playlist.user.toString() !== req.user!.id && req.user!.role !== "admin") {
-            return res.status(403).json({ message: "Access denied" });
-        }
-
-        await Playlist.findByIdAndDelete(id);
-
-        res.json({
-            message: "Playlist deleted successfully",
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Server error" });
-    }
-};
-
-// ✅ Cần login - Thêm bài hát vào playlist
-export const addSongToPlaylist = async (req: Request, res: Response) => {
-    try {
-        const { id } = req.params;
-        const { songId } = req.body;
-
-        if (!mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(songId)) {
-            return res.status(400).json({ message: "Invalid ID format" });
-        }
-
-        const playlist = await Playlist.findById(id);
-        if (!playlist) {
-            return res.status(404).json({ message: "Playlist not found" });
-        }
-
-        // Chỉ owner mới thêm được
-        if (playlist.user.toString() !== req.user!.id && req.user!.role !== "admin") {
-            return res.status(403).json({ message: "Access denied" });
-        }
-
-        // Kiểm tra bài hát đã có trong playlist chưa
-        if (playlist.songs.some((s) => s.toString() === songId)) {
-            return res.status(400).json({ message: "Song already in playlist" });
-        }
-
-        playlist.songs.push(new mongoose.Types.ObjectId(songId));
-        await playlist.save();
-
-        res.json({
-            message: "Song added to playlist",
-            playlist,
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Server error" });
-    }
-};
-
-// ✅ Cần login - Xóa bài hát khỏi playlist
-export const removeSongFromPlaylist = async (req: Request, res: Response) => {
-    try {
-        const { id, songId } = req.params;
-
-        if (!mongoose.Types.ObjectId.isValid(id) || !mongoose.Types.ObjectId.isValid(songId)) {
-            return res.status(400).json({ message: "Invalid ID format" });
-        }
-
-        const playlist = await Playlist.findById(id);
-        if (!playlist) {
-            return res.status(404).json({ message: "Playlist not found" });
-        }
-
-        if (playlist.user.toString() !== req.user!.id && req.user!.role !== "admin") {
-            return res.status(403).json({ message: "Access denied" });
-        }
-
-        playlist.songs = playlist.songs.filter((s) => s.toString() !== songId);
-        await playlist.save();
-
-        res.json({
-            message: "Song removed from playlist",
-            playlist,
-        });
-    } catch (error) {
-        res.status(500).json({ message: "Server error" });
-    }
-};
+    sendResponse(res, 200, {
+        message: "Song removed from playlist",
+        data: playlist,
+    });
+});

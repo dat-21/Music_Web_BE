@@ -1,32 +1,25 @@
 import { Request, Response } from "express";
-import { Song } from "../models";
+import { sendResponse } from "../utils/respone.utils";
+import {
+    getPersonalizedRecommendations,
+    getGeneralRecommendations, 
+} from "../services";
+import { asyncHandler } from "../utils/asyncHandler.utils";
 
-// ✅ Optional auth - Recommendations (có thể login hoặc không)
-export const getRecommendations = async (req: Request, res: Response) => {
-    try {
+export const getRecommendations = asyncHandler(async (req: Request, res: Response) => {
+  
         if (req.user) {
-            // User đã login - personalized: lấy bài hát phổ biến nhất
-            const songs = await Song.find({ status: "approved" })
-                .sort({ plays: -1 })
-                .limit(10);
-
-            res.json({
+            const data = await getPersonalizedRecommendations(req.user.username);
+            sendResponse(res, 200, {
                 message: "Personalized recommendations",
-                username: req.user.username,
-                songs,
+                data,
             });
         } else {
-            // Guest - general: lấy bài hát mới nhất
-            const songs = await Song.find({ status: "approved" })
-                .sort({ createdAt: -1 })
-                .limit(10);
-
-            res.json({
+            const data = await getGeneralRecommendations();
+            sendResponse(res, 200, {
                 message: "General recommendations",
-                songs,
+                data,
             });
         }
-    } catch (error) {
-        res.status(500).json({ message: "Server error" });
-    }
-};
+   
+});
