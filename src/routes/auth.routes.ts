@@ -18,6 +18,6 @@ router.post(
   validate(loginSchema),
   authController.login
 );
-router.post("/logout", authController.logout);
+router.post("/logout", authenticate, authController.logout);
 router.get("/me", authenticate, authController.getCurrentUser);
 export default router;
