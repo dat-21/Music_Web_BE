@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { registerService, loginService, logoutService, getCurrentUserService } from "../services";
 import { asyncHandler } from "../utils/asyncHandler.utils";
 import { sendResponse } from "../utils/respone.utils";
+import { UserDTO } from "../../../shared/contracts";
 
 // ========== REGISTER ==========
 
@@ -30,10 +31,10 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
-  sendResponse(res, 200, {
+  sendResponse<UserDTO>(res, 200, {
     message: "Login successful!",
     data: {
-      id: user._id,
+      id: user._id.toString(),
       username: user.username,
       email: user.email,
       role: user.role,

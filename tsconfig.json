@@ -2,15 +2,16 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "commonjs",
-    "rootDir": "src",
+    "rootDir": "..",
     "outDir": "dist",
     "esModuleInterop": true,
     "strict": true,
     "skipLibCheck": true,
     "moduleResolution": "node",
+    "ignoreDeprecations": "5.0",
     "typeRoots": ["./node_modules/@types", "./src/types"]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../shared/**/*"],
   "ts-node": {
     "files": true
   }
