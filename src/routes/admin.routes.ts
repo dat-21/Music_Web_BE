@@ -5,22 +5,23 @@ import { validate } from "../middleware/validate.middleware";
 import { songIdParamSchema } from "../validations/song.validation";
 import * as songController from "../controllers/song.controller";
 import * as userController from "../controllers/user.controller";
+import { ROUTE_PATHS } from "../../../shared/contracts";
 
 const router = express.Router();
 
 router.use(authenticate);
 router.use(isAdmin);
 
-router.post("/songs", uploadSongMiddleware, songController.uploadSong);
+router.post(ROUTE_PATHS.songs.upload, uploadSongMiddleware, songController.uploadSong);
 
 router.delete(
-  "/songs/:id",
+  ROUTE_PATHS.songs.detail,
   validate({ params: songIdParamSchema }),
   songController.deleteSong
 );
 
-router.get("/users", userController.getAllUsers);
+router.get(ROUTE_PATHS.admin.users, userController.getAllUsers);
 
-router.delete("/users/:id", userController.deleteUser);
+router.delete(ROUTE_PATHS.admin.userDetail, userController.deleteUser);
 
 export default router;

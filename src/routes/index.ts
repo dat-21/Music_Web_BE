@@ -4,6 +4,7 @@ import express from "express";
 import authRoutes from "./auth.routes";
 import aiChatbotRoutes from "./ai-chatbot.routes";
 import historyRoutes from "./history.routes";
+import { ROUTE_PATHS } from "../../../shared/contracts";
 
 // Import music routes theo role
 
@@ -16,21 +17,21 @@ const router = express.Router();
 /* ======================
    AUTH
 ====================== */
-router.use("/auth", authRoutes);
+router.use(ROUTE_PATHS.mounts.auth, authRoutes);
 
 /* ======================
    MUSIC (theo role)
 ====================== */
 // Thứ tự quan trọng
-router.use("/music", publicRoutes);
-router.use("/music", userRoutes);
-router.use("/music", moderatorRoutes);
-router.use("/music", adminRoutes);
+router.use(ROUTE_PATHS.mounts.music, publicRoutes);
+router.use(ROUTE_PATHS.mounts.music, userRoutes);
+router.use(ROUTE_PATHS.mounts.music, moderatorRoutes);
+router.use(ROUTE_PATHS.mounts.music, adminRoutes);
 
 /* ======================
    KHÁC
 ====================== */
-router.use("/ai-chatbot", aiChatbotRoutes);
-router.use("/history", historyRoutes);
+router.use(ROUTE_PATHS.mounts.chatbot, aiChatbotRoutes);
+router.use(ROUTE_PATHS.mounts.history, historyRoutes);
 
 export default router;
