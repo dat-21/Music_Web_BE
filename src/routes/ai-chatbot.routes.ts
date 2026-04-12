@@ -1,15 +1,15 @@
-import { Router } from 'express';
-import aiChatbotController from '../controllers/ai-chatbot.controller';
+import { Router } from "express";
+import { sendMessage, testConnection, getProviderInfo } from "../controllers/ai-chatbot.controller";
+import { validate } from "../middleware/validate.middleware";
+import { chatMessageSchema } from "../validations/chatbot.validation";
+import { ROUTE_PATHS } from "../../../shared/contracts";
 
 const router = Router();
 
-// POST /api/ai-chatbot/message - Gửi tin nhắn và nhận phản hồi
-router.post('/message', aiChatbotController.sendMessage);
+router.post(ROUTE_PATHS.chatbot.send, validate(chatMessageSchema), sendMessage);
 
-// GET /api/ai-chatbot/test - Kiểm tra kết nối AI provider
-router.get('/test', aiChatbotController.testConnection);
+router.get(ROUTE_PATHS.chatbot.test, testConnection);
 
-// GET /api/ai-chatbot/info - Lấy thông tin AI providers
-router.get('/info', aiChatbotController.getProviderInfo);
+router.get(ROUTE_PATHS.chatbot.info, getProviderInfo);
 
 export default router;

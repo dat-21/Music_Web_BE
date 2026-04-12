@@ -17,6 +17,7 @@ export interface ISong extends Document {
   likes: number;
   createdAt: Date;
   updatedAt: Date;
+  status: "pending" | "approved" | "rejected";
 }
 
 const songSchema = new Schema<ISong>(
@@ -33,6 +34,12 @@ const songSchema = new Schema<ISong>(
     uploadedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     plays: { type: Number, default: 0 },
     likes: { type: Number, default: 0 },
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+      index: true
+    }
   },
   { timestamps: true }
 );
@@ -40,7 +47,7 @@ const songSchema = new Schema<ISong>(
 // Index để tìm kiếm nhanh
 songSchema.index({ title: "text" });
 songSchema.index({ artist: 1 });
-
+songSchema.index({ title: "text", artist: "text" });
 const Song = mongoose.model<ISong>("Song", songSchema);
 export default Song;
 export { Song };

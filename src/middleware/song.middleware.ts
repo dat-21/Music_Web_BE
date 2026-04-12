@@ -1,16 +1,17 @@
-import { uploadSongWithCover } from "../utils/multer";
+import { Request, Response, NextFunction } from "express";
+import { uploadSongWithCover } from "../utils/multer.utils";
+import { sendErrorResponse } from "../utils/respone.utils";
 
-// ✅ Wrapper để handle multer errors
-const uploadSongMiddleware = (req: any, res: any, next: any) => {
-  uploadSongWithCover(req, res, (err: any) => {
+const uploadSongMiddleware = (req: Request, res: Response, next: NextFunction): void => {
+  uploadSongWithCover(req, res, ((err: unknown) => {
     if (err) {
       console.error("Multer error:", err);
-      return res.status(400).json({
-        success: false,
-        message: err.message || "File upload error"
-      });
+      const message = err instanceof Error ? err.message : "File upload error";
+      sendErrorResponse(res, 400, message);
+      return;
     }
     next();
-  });
+  }) as NextFunction);
 };
-export { uploadSongMiddleware };
+
+export { uploadSongMiddleware }; 
