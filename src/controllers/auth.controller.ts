@@ -1,145 +1,71 @@
 import { Request, Response } from "express";
-import bcrypt from "bcryptjs";
-import { generateToken } from "../utils/jwt";
-import { User } from "../models";
+import { registerService, loginService, logoutService, getCurrentUserService } from "../services";
+import { asyncHandler } from "../utils/asyncHandler.utils";
+import { sendResponse } from "../utils/respone.utils";
+import { UserDTO } from "../../../shared/contracts";
 
+// ========== REGISTER ==========
 
-export const register = async (req: Request, res: Response) => {
-  try {
-    const { username, password, confirmPassword, email, role } = req.body;
+export const register = asyncHandler(async (req: Request, res: Response) => {
+  const { username, email, password, role } = req.body;
 
-    // ✅ Validation
-    if (!username || !password || !confirmPassword || !email) {
-      return res.status(400).json({ 
-        message: "Username, email, and password are required" 
-      });
-    }
- 
-    if (password !== confirmPassword) {
-      return res.status(400).json({ message: "Passwords do not match" });
-    }
+  const user = await registerService(username, email, password, role);
 
-    // ✅ Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ message: "Invalid email format" });
-    }
+  sendResponse(res, 201, {
+    message: "User registered successfully!",
+    data: user,
+  });
+});
 
-    // ✅ Kiểm tra trùng username
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      return res.status(400).json({ message: "Username already exists" });
-    }
+// ========== LOGIN ==========
 
-    // ✅ Kiểm tra trùng email
-    const existingEmail = await User.findOne({ email });
-    if (existingEmail) {
-      return res.status(400).json({ message: "Email already exists" });
-    }
+export const login = asyncHandler(async (req: Request, res: Response) => {
+  const { username, password } = req.body;
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
- 
-    // Tạo user mới
-    const newUser = new User({ 
-      username, 
-      email, // ✅ Thêm email
-      password: hashedPassword,
-      role: role && ["admin", "moderator"].includes(role) ? role : "user",
-      isVerified: true // ✅ Tạm thời set true để test, sau này sẽ dùng email verification
-    });
-    
-    await newUser.save();
+  const { user, token } = await loginService(username, password);
 
-    res.status(201).json({ 
-      message: "User registered successfully!", 
-      user: { 
-        username: newUser.username,
-        email: newUser.email // ✅ Trả về email
-      } 
-    });
-  } catch (error) {
-    console.error("Register error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
+  res.cookie("token", token, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
 
-
-// ✅ Đăng nhập
-
-export const login = async (req: Request, res: Response) => {
-  try {
-    const { username, password } = req.body;
-
-    const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(401).json({ message: "Invalid username or password" });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid username or password" });
-    }
-
-    // ✅ Bỏ kiểm tra email verification (tạm thời không cần)
-
-    // ✅ Generate token với đầy đủ thông tin
-    const token = generateToken({ 
+  sendResponse<UserDTO>(res, 200, {
+    message: "Login successful!",
+    data: {
       id: user._id.toString(),
       username: user.username,
-      email: user.email, // ✅ Thêm email vào token
+      email: user.email,
+      role: user.role,
       isVerified: user.isVerified,
-      role: user.role  
-    });
+    },
+  });
+});
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: false,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+// ========== LOGOUT ==========
 
-    res.json({ 
-      message: "Login successful!", 
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email, // ✅ Trả về email
-        role: user.role,
-        isVerified: user.isVerified
-      }
-    });
-  } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-};
+export const logout = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
 
-// ✅ Đăng xuất
-export const logout = (req: Request, res: Response) => {
+  logoutService(userId);
+
   res.clearCookie("token");
-  res.json({ message: "Logged out" });
-};
 
+  sendResponse(res, 200, {
+    message: "Logged out successfully",
+  });
+});
 
-// =========================
-// GET USER FROM COOKIE (AUTH ME)
-// =========================
-export const getCurrentUser = async (req: Request, res: Response) => {
-  try {
-    if (!req.user) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
+// ========== GET CURRENT USER ==========
 
-    const user = await User.findById(req.user.id)
-      .select("username email role isVerified createdAt"); 
+export const getCurrentUser = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.id;
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+  const user = await getCurrentUserService(userId);
 
-    res.json({ user });
-  } catch (error) {
-    res.status(500).json({ message: "Server error" });
-  }
-};
+  sendResponse(res, 200, {
+    message: "User retrieved successfully",
+    data: user,
+  });
+});
