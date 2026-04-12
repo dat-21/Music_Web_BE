@@ -7,6 +7,7 @@ import connectDB from "./config/db";
 import route from "./routes";
 import { errorHandler } from "./middleware/error.middleware";
 import routes from "./routes";
+import { sendResponse } from "./utils/respone.utils";
 // Tự động bắt lỗi từ async functions
 
 const app = express();
@@ -35,11 +36,15 @@ app.use((req: Request, res: Response, next) => {
 app.use("/api", routes);
 
 app.get("/", (req: Request, res: Response) => {
-  res.json({ message: "🚀 Express + TypeScript + MongoDB backend is running!" });
+  sendResponse(res, 200, {
+    message: "🚀 Express + TypeScript + MongoDB backend is running!",
+  });
 });
 
 app.get("/api/test", (req: Request, res: Response) => {
-  res.json({ message: "This is /api/test" });
+  sendResponse(res, 200, {
+    message: "This is /api/test",
+  });
 });
 
 app.get("/error", (req: Request, res: Response) => {

@@ -1,13 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { verifyToken } from "../utils/jwt.utils";
+import { sendErrorResponse } from "../utils/respone.utils";
 
 export const authenticate = (req: Request, res: Response, next: NextFunction): void => {
   try {
     const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
 
     if (!token) {
-      res.status(401).json({ message: "Authentication required" });
+      sendErrorResponse(res, 401, "Authentication required");
       return;
     }
 
@@ -16,27 +17,25 @@ export const authenticate = (req: Request, res: Response, next: NextFunction): v
     next();
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
-      res.status(403).json({ message: "Invalid token" });
+      sendErrorResponse(res, 403, "Invalid token");
       return;
     }
     if (error instanceof jwt.TokenExpiredError) {
-      res.status(403).json({ message: "Token expired" });
+      sendErrorResponse(res, 403, "Token expired");
       return;
     }
-    res.status(403).json({ message: "Token verification failed" });
+    sendErrorResponse(res, 403, "Token verification failed");
   }
 };
 
 export const requireVerified = (req: Request, res: Response, next: NextFunction): void => {
   if (!req.user) {
-    res.status(401).json({ message: "Authentication required" });
+    sendErrorResponse(res, 401, "Authentication required");
     return;
   }
 
   if (!req.user.isVerified) {
-    res.status(403).json({
-      message: "Email not verified. Please check your inbox.",
-    });
+    sendErrorResponse(res, 403, "Email not verified. Please check your inbox.");
     return;
   }
 
@@ -46,19 +45,18 @@ export const requireVerified = (req: Request, res: Response, next: NextFunction)
 export const authorize = (...allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
-      res.status(401).json({ message: "Authentication required" });
+      sendErrorResponse(res, 401, "Authentication required");
       return;
     }
 
     if (!allowedRoles.includes(req.user.role)) {
-      res.status(403).json({
-        message: "Access denied. Insufficient permissions",
+      sendErrorResponse(res, 403, "Access denied. Insufficient permissions", {
         requiredRoles: allowedRoles,
         yourRole: req.user.role,
       });
       return;
     }
-
+ 
     next();
   };
 };
@@ -70,7 +68,7 @@ export const isModeratorOrAdmin = authorize("admin", "moderator");
 export const isOwnerOrAdmin = (resourceUserIdField: string = "userId") => {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
-      res.status(401).json({ message: "Authentication required" });
+      sendErrorResponse(res, 401, "Authentication required");
       return;
     }
 
@@ -83,7 +81,7 @@ export const isOwnerOrAdmin = (resourceUserIdField: string = "userId") => {
       req.params[resourceUserIdField] || req.body[resourceUserIdField];
 
     if (req.user.id !== resourceUserId) {
-      res.status(403).json({ message: "You can only access your own resources" });
+      sendErrorResponse(res, 403, "You can only access your own resources");
       return;
     }
 

@@ -43,7 +43,10 @@ export const getListenHistory = asyncHandler(async (req: Request, res: Response)
 
   const result = await getListenHistoryService(userId, page, limit);
 
-  sendResponse(res, 200, result);
+  sendResponse(res, 200, {
+    message: "Listen history retrieved",
+    data: result,
+  });
 });
 
 export const removeFromHistory = asyncHandler(async (req: Request, res: Response) => {

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodSchema } from "zod";
+import { sendErrorResponse } from "../utils/respone.utils";
 
 interface ValidateSchemas {
   body?: ZodSchema;
@@ -26,9 +27,7 @@ export const validate =
       next();
     } catch (error: unknown) {
       const zodError = error as { errors?: { message: string; path: (string | number)[] }[] };
-      res.status(400).json({
-        success: false,
-        message: "Validation failed",
+      sendErrorResponse(res, 400, "Validation failed", {
         errors: zodError.errors ?? [],
       });
     }
