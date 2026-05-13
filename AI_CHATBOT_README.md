@@ -1,6 +1,7 @@
 # 🤖 AI Chatbot Backend - Multi-Provider Support
 
 Backend hỗ trợ nhiều AI providers:
+
 - ✅ **Gemini AI (Google)** - KHUYÊN DÙNG (Miễn phí, mạnh)
 - ✅ **OpenAI GPT** - Tốt nhưng cần trả phí
 - ✅ **Rule-based** - Không cần API key, offline
@@ -8,6 +9,7 @@ Backend hỗ trợ nhiều AI providers:
 ## 🚀 Setup
 
 ### 1. Cài đặt dependencies
+
 ```bash
 cd d:\code\Project\Project\BackEnd
 npm install @google/generative-ai openai
@@ -16,12 +18,14 @@ npm install @google/generative-ai openai
 ### 2. Lấy API Keys
 
 #### Option 1: Gemini AI (KHUYÊN DÙNG - MIỄN PHÍ)
-1. Truy cập: https://makersuite.google.com/app/apikey
+
+1. Truy cập: <https://makersuite.google.com/app/apikey>
 2. Click "Create API Key"
 3. Copy key
 
 #### Option 2: OpenAI GPT
-1. Truy cập: https://platform.openai.com/api-keys
+
+1. Truy cập: <https://platform.openai.com/api-keys>
 2. Tạo API key
 3. Copy key (cần thẻ tín dụng)
 
@@ -44,7 +48,8 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 Backend tự động sử dụng provider được chọn trong `AI_PROVIDER`.
 
-### Endpoints vẫn giữ nguyên:
+### Endpoints vẫn giữ nguyên
+
 - `POST /api/chatbot/message` - Gửi tin nhắn
 - `GET /api/chatbot/test` - Test connection
 
@@ -61,6 +66,7 @@ Frontend không cần thay đổi gì!
 ## 🔄 Switch Provider
 
 Chỉ cần đổi trong `.env`:
+
 ```env
 AI_PROVIDER=gemini    # Dùng Google Gemini
 AI_PROVIDER=openai    # Dùng OpenAI
