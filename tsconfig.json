@@ -11,7 +11,7 @@
     "ignoreDeprecations": "6.0",
     "typeRoots": ["./node_modules/@types", "./src/types"]
   },
-  "include": ["src/**/*", "../shared/**/*"],
+  "include": ["src/**/*"],
   "ts-node": {
     "files": true
   }

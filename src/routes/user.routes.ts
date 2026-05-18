@@ -3,7 +3,7 @@ import { authenticate } from "../middleware/auth.middleware";
 import { validate } from "../middleware/validate.middleware";
 import { createPlaylistSchema, updatePlaylistSchema, addSongToPlaylistSchema, playlistIdParamSchema } from "../validations";
 import * as playlistController from "../controllers/playlist.controller";
-import { ROUTE_PATHS } from "../../../shared/contracts";
+import { ROUTE_PATHS } from "@dat-21/contracts";
 
 const router = express.Router();
 
