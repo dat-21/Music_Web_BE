@@ -3,7 +3,7 @@ import { authenticate, isModeratorOrAdmin } from "../middleware/auth.middleware"
 import { validate } from "../middleware/validate.middleware";
 import { updateSongSchema, songIdParamSchema } from "../validations/song.validation";
 import * as songController from "../controllers/song.controller";
-import { ROUTE_PATHS } from "../../../shared/contracts";
+import { ROUTE_PATHS } from "@dat-21/contracts";
 
 const router = express.Router();
 
