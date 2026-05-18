@@ -5,7 +5,7 @@ import { validate } from "../middleware/validate.middleware";
 import { songIdParamSchema } from "../validations/song.validation";
 import * as songController from "../controllers/song.controller";
 import * as userController from "../controllers/user.controller";
-import { ROUTE_PATHS } from "../../../shared/contracts";
+import { ROUTE_PATHS } from "@dat-21/contracts";
 
 const router = express.Router();
 
