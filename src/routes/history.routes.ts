@@ -9,7 +9,7 @@ import {
 import { authenticate } from "../middleware/auth.middleware";
 import { validate } from "../middleware/validate.middleware";
 import { updateListenPositionSchema, historySongIdParamSchema } from "../validations/history.validation";
-import { ROUTE_PATHS } from "@dat-21/contracts";
+import { ROUTE_PATHS } from "../../../shared/contracts";
 
 const router = Router();
 

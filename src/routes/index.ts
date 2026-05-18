@@ -4,7 +4,7 @@ import express from "express";
 import authRoutes from "./auth.routes";
 import aiChatbotRoutes from "./ai-chatbot.routes";
 import historyRoutes from "./history.routes";
-import { ROUTE_PATHS } from "@dat-21/contracts";
+import { ROUTE_PATHS } from "../../../shared/contracts";
 
 // Import music routes theo role
 

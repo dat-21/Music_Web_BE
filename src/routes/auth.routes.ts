@@ -6,7 +6,7 @@ import {
 import * as authController from "../controllers/auth.controller";
 import { validate } from "../middleware/validate.middleware";
 import { loginSchema, registerSchema } from "../validations/auth.validation";
-import { ROUTE_PATHS } from "@dat-21/contracts";
+import { ROUTE_PATHS } from "../../../shared/contracts";
 
 const router = express.Router();
 router.post(

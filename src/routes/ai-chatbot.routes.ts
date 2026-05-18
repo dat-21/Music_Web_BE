@@ -2,7 +2,7 @@ import { Router } from "express";
 import { sendMessage, testConnection, getProviderInfo } from "../controllers/ai-chatbot.controller";
 import { validate } from "../middleware/validate.middleware";
 import { chatMessageSchema } from "../validations/chatbot.validation";
-import { ROUTE_PATHS } from "@dat-21/contracts";
+import { ROUTE_PATHS } from "../../../shared/contracts";
 
 const router = Router();
 

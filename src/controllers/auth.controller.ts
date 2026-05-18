@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { registerService, loginService, logoutService, getCurrentUserService } from "../services";
 import { asyncHandler } from "../utils/asyncHandler.utils";
 import { sendResponse } from "../utils/respone.utils";
-import { UserDTO } from "@dat-21/contracts";
+import { UserDTO } from "../../../shared/contracts";
 
 // ========== REGISTER ==========
 
