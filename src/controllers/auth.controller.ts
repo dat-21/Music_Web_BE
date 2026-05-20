@@ -7,9 +7,9 @@ import { UserDTO } from "../../../shared/contracts";
 // ========== REGISTER ==========
 
 export const register = asyncHandler(async (req: Request, res: Response) => {
-  const { username, email, password, role } = req.body;
+  const { username, email, password } = req.body;
 
-  const user = await registerService(username, email, password, role);
+  const user = await registerService(username, email, password);
 
   sendResponse(res, 201, {
     message: "User registered successfully!",
