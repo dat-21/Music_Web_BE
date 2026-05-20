@@ -1,5 +1,5 @@
 import express from "express";
-import { authenticate, isAdmin } from "../middleware/auth.middleware";
+import { authenticate, isAdmin, isModeratorOrAdmin } from "../middleware/auth.middleware";
 import { uploadSongMiddleware } from "../middleware/song.middleware";
 import { validate } from "../middleware/validate.middleware";
 import { songIdParamSchema } from "../validations/song.validation";
@@ -10,7 +10,7 @@ import { ROUTE_PATHS } from "@dat-21/contracts";
 const router = express.Router();
 
 router.use(authenticate);
-router.use(isAdmin);
+router.use(isModeratorOrAdmin);
 
 router.post(ROUTE_PATHS.songs.upload, uploadSongMiddleware, songController.uploadSong);
 
@@ -20,8 +20,8 @@ router.delete(
   songController.deleteSong
 );
 
-router.get(ROUTE_PATHS.admin.users, userController.getAllUsers);
+router.get(ROUTE_PATHS.admin.users, isAdmin, userController.getAllUsers);
 
-router.delete(ROUTE_PATHS.admin.userDetail, userController.deleteUser);
+router.delete(ROUTE_PATHS.admin.userDetail, isAdmin, userController.deleteUser);
 
 export default router;
