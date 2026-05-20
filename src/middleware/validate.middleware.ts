@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { SafeParseReturnType, ZodSchema } from "zod";
+import { ZodSchema } from "zod";
 import { sendErrorResponse } from "../utils/respone.utils";
 
 interface ValidateSchemas {
@@ -17,8 +17,20 @@ type ValidationIssue = {
   code: string;
 };
 
+type SafeParseResult =
+  | {
+      success: true;
+      data: unknown;
+    }
+  | {
+      success: false;
+      error: {
+        errors: { message: string; path: (string | number)[]; code: string }[];
+      };
+    };
+
 const collectIssues = (
-  result: SafeParseReturnType<unknown, unknown> | undefined,
+  result: SafeParseResult | undefined,
   location: ValidationLocation
 ): ValidationIssue[] => {
   if (!result || result.success) return [];
@@ -59,7 +71,7 @@ export const validate =
   (req: Request, res: Response, next: NextFunction): void => {
     if ("parse" in schema) {
       // Single schema — validate body (legacy usage)
-      const result = schema.safeParse(req.body);
+      const result = schema.safeParse(req.body) as SafeParseResult;
       if (result.success) {
         next();
         return;
@@ -71,9 +83,9 @@ export const validate =
     }
 
     const errors = [
-      ...collectIssues(schema.body?.safeParse(req.body), "body"),
-      ...collectIssues(schema.params?.safeParse(req.params), "params"),
-      ...collectIssues(schema.query?.safeParse(req.query), "query"),
+      ...collectIssues(schema.body?.safeParse(req.body) as SafeParseResult | undefined, "body"),
+      ...collectIssues(schema.params?.safeParse(req.params) as SafeParseResult | undefined, "params"),
+      ...collectIssues(schema.query?.safeParse(req.query) as SafeParseResult | undefined, "query"),
     ];
 
     if (errors.length) {
