@@ -7,8 +7,7 @@ import { IUser } from "../models/user.model";
 export const registerService = async (
   username: string,
   email: string,
-  password: string,
-  role?: string
+  password: string
 ): Promise<{ id: string; username: string; email: string }> => {
   const existingUser = await userRepository.findUserByUsername(username);
   if (existingUser) {
@@ -26,7 +25,7 @@ export const registerService = async (
     username,
     email,
     password: hashedPassword,
-    role: role && ["admin", "moderator"].includes(role) ? (role as IUser["role"]) : "user",
+    role: "user",
     isVerified: true,
   } as Partial<IUser>);
 
