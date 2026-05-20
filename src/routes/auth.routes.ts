@@ -1,12 +1,12 @@
 // routes/music.routes.ts
 import express from "express";
-import { 
+import {
   authenticate,
 } from "../middleware/auth.middleware";
 import * as authController from "../controllers/auth.controller";
 import { validate } from "../middleware/validate.middleware";
 import { loginSchema, registerSchema } from "../validations/auth.validation";
-import { ROUTE_PATHS } from "../../../shared/contracts";
+import { ROUTE_PATHS } from "@dat-21/contracts";
 
 const router = express.Router();
 router.post(
