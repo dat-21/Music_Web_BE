@@ -1,6 +1,6 @@
 // routes/music.routes.ts
 import express from "express";
-import { 
+import {
   authenticate,
 } from "../middleware/auth.middleware";
 import * as authController from "../controllers/auth.controller";

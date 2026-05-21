@@ -17,6 +17,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
+
 // ========== LOGIN ==========
 
 export const login = asyncHandler(async (req: Request, res: Response) => {
